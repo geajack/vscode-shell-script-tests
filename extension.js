@@ -54,7 +54,7 @@ function activate(context)
 
                     if (result.err === null)
                     {
-                        run.passed(test, duration);  
+                        run.passed(test, duration);
                     }
                     else
                     {
@@ -78,7 +78,16 @@ function activate(context)
 
     tests.children.add(test);
 
-    controller.items.add(tests);
+    this.disposableRegistry.push(
+        commandManager.registerCommand(
+            constants.Commands.Tests_Configure,
+            function(_, _, resource)
+            {
+            },
+        ),
+    );
+
+    // controller.items.add(tests);
 }
 
 function deactivate() { }

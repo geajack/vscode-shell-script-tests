@@ -10,5 +10,19 @@
         "onStartupFinished"
     ],
     "contributes": {
+        "viewsWelcome": [
+            {
+                "view": "testing",
+                "contents": "[Configure Shell Script Tests](command:shellScriptTests.configureTests)",
+                "when": "!virtualWorkspace && shellExecutionSupported"
+            }
+        ],
+        "commands": [
+            {
+                "category": "Shell Script Tests",
+                "command": "shellScriptTests.configureTests",
+                "title": "Configure tests"
+            }
+        ]
     }
 }
