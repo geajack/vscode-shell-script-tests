@@ -12,9 +12,9 @@ function activate(context)
         "Hello World Tests"
     );
 
-    let uri = new vscode.Uri("./package.json");
-
-    const test = controller.createTestItem("test", "a test", uri);
+    let uri = vscode.Uri.file("tests/test");
+    
+    const test = controller.createTestItem("test", "test", uri);
     controller.items.add(test);
 }
 
