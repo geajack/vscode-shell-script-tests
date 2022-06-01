@@ -42,19 +42,24 @@ function activate(context)
                 if (test.uri)
                 {
                     command = test.uri.path;
-                    const result = await new Promise((resolve, reject) => {
-                        process.execFile(command, (err, out) => resolve(err));
-                    });
-
                     let start = Date.now();
-                    if (result === null)
+                    const result = await new Promise((resolve, reject) => {
+                        process.execFile(command, (err, out) => resolve({err, out}));
+                    });
+                    let duration = Date.now() - start;
+
+                    let message = result.out;
+                    message = message.replaceAll("\n", "\n\r");
+                    run.appendOutput(message);
+
+                    if (result.err === null)
                     {
-                        run.passed(test, Date.now() - start);                    
+                        run.passed(test, duration);  
                     }
                     else
                     {
-                        let { code, message } = result;
-                        run.failed(test, new vscode.TestMessage(message), Date.now() - start);
+                        let { code, message } = result.err;
+                        run.failed(test, new vscode.TestMessage(message), duration);
                     }
                 }
                 else
