@@ -12,10 +12,21 @@ function activate(context)
         "Hello World Tests"
     );
 
-    let uri = vscode.Uri.file("tests/test");
+    const runProfile = controller.createRunProfile(
+        "Run",
+        vscode.TestRunProfileKind.Run,
+        (request, token) => {
+            console.log(request);
+        }
+    );
     
-    const test = controller.createTestItem("test", "test", uri);
-    controller.items.add(test);
+    const tests = controller.createTestItem("tests", "tests");
+    const test = controller.createTestItem("test", "test", vscode.Uri.file("tests/test"));
+
+    tests.canResolveChildren = true;
+    tests.children.add(test);
+
+    controller.items.add(tests);
 }
 
 function deactivate() { }
