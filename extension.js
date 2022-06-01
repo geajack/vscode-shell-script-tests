@@ -1,4 +1,5 @@
 const vscode = require("vscode");
+const process = require("child_process");
 
 module.exports = {
     activate,
@@ -33,23 +34,33 @@ function activate(context)
             {
                 const test = queue.pop();
 
-                // Skip tests the user asked to exclude
                 if (request.exclude && request.exclude.includes(test))
                 {
                     continue;
                 }
 
-                let start = Date.now();
-                if (true)
+                if (test.uri)
                 {
-                    run.passed(test, Date.now() - start);
+                    command = test.uri.path;
+                    const result = await new Promise((resolve, reject) => {
+                        process.execFile(command, (err, out) => resolve(err));
+                    });
+
+                    let start = Date.now();
+                    if (result === null)
+                    {
+                        run.passed(test, Date.now() - start);                    
+                    }
+                    else
+                    {
+                        let { code, message } = result;
+                        run.failed(test, new vscode.TestMessage(message), Date.now() - start);
+                    }
                 }
                 else
                 {
-                    run.failed(test, new vscode.TestMessage(e.message), Date.now() - start);
+                    test.children.forEach(test => queue.push(test));
                 }
-
-                test.children.forEach(test => queue.push(test));
             }
 
             // Make sure to end the run after all tests have been executed:
