@@ -21,7 +21,7 @@ function activate(context)
     );
     
     const tests = controller.createTestItem("tests", "tests");
-    const test = controller.createTestItem("test", "test", vscode.Uri.file("tests/test"));
+    const test = controller.createTestItem("test", "test", vscode.Uri.joinPath(vscode.workspace.workspaceFolders[0].uri, "tests/test"));
 
     tests.canResolveChildren = true;
     tests.children.add(test);
