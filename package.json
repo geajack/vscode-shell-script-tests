@@ -5,6 +5,10 @@
     "engines": {
         "vscode": "^1.32.0"
     },
+    "icon": "icon.png",
+    "repository": {
+        "url": "https://github.com/geajack/vscode-shell-script-tests"
+    },
     "main": "extension.js",
     "activationEvents": [
         "onStartupFinished"
