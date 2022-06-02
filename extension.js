@@ -1,4 +1,6 @@
 const vscode = require("vscode");
+const fs = require("fs");
+const path = require("path");
 const process = require("child_process");
 
 module.exports = {
@@ -6,7 +8,7 @@ module.exports = {
     deactivate,
 };
 
-function activate(context)
+async function activate(context)
 {
     const controller = vscode.tests.createTestController(
         "helloWorldTests",
@@ -43,8 +45,13 @@ function activate(context)
                 {
                     command = test.uri.path;
                     let start = Date.now();
+                    run.started(test);
                     const result = await new Promise((resolve, reject) => {
-                        process.execFile(command, (err, out) => resolve({err, out}));
+                        process.execFile(
+                            command,
+                            { cwd: vscode.workspace.workspaceFolders[0].uri.fsPath },
+                            (err, out) => resolve({err, out})
+                        );
                     });
                     let duration = Date.now() - start;
 
@@ -59,6 +66,8 @@ function activate(context)
                     else
                     {
                         let { code, message } = result.err;
+                        message = message.replaceAll("\n", "\n\r");
+                        run.appendOutput(message);
                         run.failed(test, new vscode.TestMessage(message), duration);
                     }
                 }
@@ -72,22 +81,66 @@ function activate(context)
             run.end();
         }
     );
-    
-    const tests = controller.createTestItem("tests", "tests");
-    const test = controller.createTestItem("test", "test", vscode.Uri.joinPath(vscode.workspace.workspaceFolders[0].uri, "tests/test"));
 
-    tests.children.add(test);
-
-    this.disposableRegistry.push(
-        commandManager.registerCommand(
-            constants.Commands.Tests_Configure,
-            function(_, _, resource)
+    context.subscriptions.push(
+        vscode.commands.registerCommand(
+            "shellScriptTests.configureTests",
+            async function(_, _, resource)
             {
+                let response = await vscode.window.showInputBox(
+                    {
+                        prompt: "Tests folder:"
+                    }
+                );
+
+                let configuration = vscode.workspace.getConfiguration("shellScriptTests");
+                try
+                {
+                    await configuration.update("testFolder", response, false);
+                }
+                catch (exception)
+                {
+                    console.log(exception);
+                }
+
+                detectTests();
             },
         ),
     );
 
-    // controller.items.add(tests);
+    detectTests();
+
+    async function detectTests()
+    {
+        let configuration = vscode.workspace.getConfiguration("shellScriptTests");
+        let relativePath = await configuration.get("testFolder");
+        let root = vscode.workspace.workspaceFolders[0].uri;
+        let testsPath = vscode.Uri.joinPath(root, relativePath);
+
+        await findTests(testsPath, controller.items);
+
+        async function findTests(directoryUri, parent)
+        {
+            let children = await vscode.workspace.fs.readDirectory(directoryUri);
+            for (let child of children)
+            {
+                let [name, type] = child;
+                let uri = vscode.Uri.joinPath(directoryUri, name);
+                let test;
+                if (type === vscode.FileType.Directory)
+                {
+                    test = controller.createTestItem(uri.fsPath, name);
+                    findTests(uri, test.children);
+                }
+                else if (type === vscode.FileType.File)
+                {
+                    test = controller.createTestItem(uri.fsPath, name, uri);
+                }
+                parent.add(test);
+            }
+        }
+    }
+
 }
 
 function deactivate() { }

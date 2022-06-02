@@ -23,6 +23,16 @@
                 "command": "shellScriptTests.configureTests",
                 "title": "Configure tests"
             }
-        ]
+        ],
+        "configuration": {
+            "title": "Shell Script Tests",
+            "properties": {
+                "shellScriptTests.testFolder": {
+                    "type": "string",
+                    "default": "tests",
+                    "description": "Folder (relative to workspace root) containing test scripts"
+                }
+            }
+        }
     }
 }
