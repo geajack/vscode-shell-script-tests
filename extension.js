@@ -10,6 +10,9 @@ module.exports = {
 
 async function activate(context)
 {
+    let configuration = vscode.workspace.getConfiguration("example");
+    let relativePath = await configuration.get("value");
+
     const controller = vscode.tests.createTestController(
         "helloWorldTests",
         "Hello World Tests"
